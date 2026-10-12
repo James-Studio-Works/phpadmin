@@ -1,0 +1,21 @@
+{
+  "name": "phpadmin",
+  "version": "1.0.0",
+  "description": "A simple pastebin-style website to paste and review text anytime. Each paste has its own unique URL.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "uuid": "^10.0.0",
+    "nanoid": "^5.0.7"
+  },
+  "keywords": ["pastebin", "paste", "phpadmin"],
+  "author": "James-Studio-Works",
+  "license": "MIT"
+}

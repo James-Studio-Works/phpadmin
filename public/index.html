@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>phpadmin — Paste & Review Anytime</title>
+  <meta name="description" content="A simple pastebin. Paste anything and review it anytime with unique URLs.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: #0f172a; }
+    textarea:focus, input:focus, select:focus { outline: none; box-shadow: 0 0 0 2px #0ea5e9; }
+    .paste-card:hover { transform: translateY(-2px); }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100 font-sans">
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2 group">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center font-bold text-white text-sm shadow-lg shadow-sky-500/20">
+          PA
+        </div>
+        <span class="text-xl font-semibold tracking-tight group-hover:text-sky-400 transition">phpadmin</span>
+      </a>
+      <nav class="flex items-center gap-4 text-sm">
+        <a href="/" class="text-sky-400 font-medium">New Paste</a>
+        <a href="#recent" class="text-slate-400 hover:text-white transition">Recent</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-10">
+    <!-- Create Form -->
+    <section class="mb-16">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl sm:text-4xl font-bold mb-3 bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
+          Paste anything. Review anytime.
+        </h1>
+        <p class="text-slate-400 max-w-lg mx-auto">
+          Each paste gets its own unique link. No account needed. Perfect for code, notes, logs, or anything text-based.
+        </p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+        <div class="p-5 border-b border-slate-800 flex flex-wrap gap-4 items-center">
+          <input
+            type="text"
+            id="title"
+            placeholder="Title (optional)"
+            class="flex-1 min-w-[200px] bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm placeholder-slate-500 focus:border-sky-500 transition"
+          />
+          <select
+            id="language"
+            class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:border-sky-500 transition"
+          >
+            <option value="text">Plain Text</option>
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+            <option value="python">Python</option>
+            <option value="php">PHP</option>
+            <option value="html">HTML</option>
+            <option value="css">CSS</option>
+            <option value="json">JSON</option>
+            <option value="sql">SQL</option>
+            <option value="bash">Bash</option>
+            <option value="markdown">Markdown</option>
+            <option value="java">Java</option>
+            <option value="go">Go</option>
+            <option value="rust">Rust</option>
+            <option value="c">C / C++</option>
+          </select>
+        </div>
+
+        <textarea
+          id="content"
+          rows="16"
+          placeholder="Paste your content here..."
+          class="w-full bg-slate-950 px-5 py-4 font-mono text-sm text-slate-200 placeholder-slate-600 resize-y border-0 focus:ring-0"
+          spellcheck="false"
+        ></textarea>
+
+        <div class="p-5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
+          <p class="text-xs text-slate-500">
+            Max ~5 MB · Stored on this server
+          </p>
+          <button
+            id="createBtn"
+            onclick="createPaste()"
+            class="bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-medium px-6 py-2.5 rounded-lg transition shadow-lg shadow-sky-600/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <svg id="spinner" class="hidden animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span id="btnText">Create Paste</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="error" class="hidden mt-4 p-4 bg-red-900/40 border border-red-800 text-red-300 rounded-xl text-sm"></div>
+    </section>
+
+    <!-- Recent Pastes -->
+    <section id="recent">
+      <h2 class="text-xl font-semibold mb-5 flex items-center gap-2">
+        <span class="w-1.5 h-6 bg-sky-500 rounded-full"></span>
+        Recent Pastes
+      </h2>
+      <div id="recentList" class="grid gap-3 sm:grid-cols-2">
+        <div class="text-slate-500 text-sm col-span-full py-8 text-center">Loading...</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-800 mt-20 py-8 text-center text-slate-500 text-sm">
+    <p>phpadmin · Open source pastebin · <a href="https://github.com/James-Studio-Works/phpadmin" class="text-sky-400 hover:underline" target="_blank">GitHub</a></p>
+  </footer>
+
+  <script>
+    async function createPaste() {
+      const title = document.getElementById('title').value.trim();
+      const content = document.getElementById('content').value;
+      const language = document.getElementById('language').value;
+      const btn = document.getElementById('createBtn');
+      const spinner = document.getElementById('spinner');
+      const btnText = document.getElementById('btnText');
+      const errorEl = document.getElementById('error');
+
+      if (!content.trim()) {
+        errorEl.textContent = 'Please enter some content.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      errorEl.classList.add('hidden');
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      btnText.textContent = 'Creating...';
+
+      try {
+        const res = await fetch('/api/pastes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, content, language })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Failed to create paste');
+        }
+
+        // Redirect to the new paste
+        window.location.href = data.url;
+      } catch (err) {
+        errorEl.textContent = err.message || 'Something went wrong. Please try again.';
+        errorEl.classList.remove('hidden');
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        btnText.textContent = 'Create Paste';
+      }
+    }
+
+    // Load recent pastes
+    async function loadRecent() {
+      const container = document.getElementById('recentList');
+      try {
+        const res = await fetch('/api/pastes');
+        const list = await res.json();
+
+        if (!list.length) {
+          container.innerHTML = '<div class="text-slate-500 text-sm col-span-full py-8 text-center">No pastes yet. Be the first!</div>';
+          return;
+        }
+
+        container.innerHTML = list.map(p => `
+          <a href="/p/${p.id}" class="paste-card block bg-slate-900 border border-slate-800 hover:border-sky-700/50 rounded-xl p-4 transition duration-200">
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <h3 class="font-medium text-slate-100 truncate">${escapeHtml(p.title)}</h3>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 shrink-0">${p.language}</span>
+            </div>
+            <p class="text-sm text-slate-500 font-mono line-clamp-2 mb-3">${escapeHtml(p.preview)}</p>
+            <div class="flex items-center gap-3 text-xs text-slate-600">
+              <span>${formatDate(p.createdAt)}</span>
+              <span>·</span>
+              <span>${p.views} view${p.views !== 1 ? 's' : ''}</span>
+            </div>
+          </a>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = '<div class="text-slate-500 text-sm col-span-full py-8 text-center">Could not load recent pastes.</div>';
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      const now = new Date();
+      const diff = (now - d) / 1000;
+      if (diff < 60) return 'just now';
+      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+      if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+      if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+      return d.toLocaleDateString();
+    }
+
+    // Ctrl+Enter to submit
+    document.getElementById('content').addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'Enter') createPaste();
+    });
+
+    loadRecent();
+  </script>
+</body>
+</html>
