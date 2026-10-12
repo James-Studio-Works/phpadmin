@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paste — phpadmin</title>
+  <title>phpadmin</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -106,7 +106,7 @@
         if (!res.ok) {
           document.getElementById('loading').classList.add('hidden');
           document.getElementById('error').classList.remove('hidden');
-          document.title = 'Not Found — phpadmin';
+          document.title = 'phpadmin';
           return;
         }
 
@@ -118,7 +118,7 @@
         // Title
         const title = paste.title || 'Untitled Paste';
         document.getElementById('title').textContent = title;
-        document.title = `${title} — phpadmin`;
+        document.title = title === 'Untitled Paste' ? 'phpadmin' : `${title} — phpadmin`;
 
         // Meta
         document.getElementById('language').textContent = paste.language || 'text';
